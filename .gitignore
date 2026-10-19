@@ -1,0 +1,13 @@
+
+/vendor/
+/.phpunit.cache/
+/.phpunit.result.cache/
+/coverage/
+.phpactor.yml
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+.env
+.env.*
+!.env.example
