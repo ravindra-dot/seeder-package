@@ -30,4 +30,14 @@ final class CommandTest extends TestCase
             ->expectsOutput('Result: 1 finding(s)')
             ->assertExitCode(1);
     }
+
+    public function test_command_reports_a_wrong_import_in_the_injected_fixture(): void
+    {
+        $this->app->setBasePath(__DIR__.'/../Fixtures/injected-failures');
+
+        $this->artisan('model-integrity:check')
+            ->expectsOutputToContain('App\\Billing\\Customer')
+            ->expectsOutput('Result: 1 finding(s)')
+            ->assertExitCode(1);
+    }
 }
