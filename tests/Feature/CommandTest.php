@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace RavindraDot\ModelIntegrity\Tests\Feature;
+namespace ModelIntegrity\Tests\Feature;
 
+use ModelIntegrity\ModelIntegrityServiceProvider;
 use Orchestra\Testbench\TestCase;
-use RavindraDot\ModelIntegrity\ModelIntegrityServiceProvider;
 
 final class CommandTest extends TestCase
 {
@@ -39,5 +39,15 @@ final class CommandTest extends TestCase
             ->expectsOutputToContain('App\\Billing\\Customer')
             ->expectsOutput('Result: 1 finding(s)')
             ->assertExitCode(1);
+    }
+
+    public function test_command_shows_conventional_mapping_warning_without_failing(): void
+    {
+        $this->app->setBasePath(__DIR__.'/../Fixtures/conventional-mapping');
+
+        $this->artisan('model-integrity:check')
+            ->expectsOutputToContain('factory.model_mapping_suspicious')
+            ->expectsOutput('Result: 1 finding(s)')
+            ->assertExitCode(0);
     }
 }

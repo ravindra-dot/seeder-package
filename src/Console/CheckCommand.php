@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace RavindraDot\ModelIntegrity\Console;
+namespace ModelIntegrity\Console;
 
 use Illuminate\Console\Command;
-use RavindraDot\ModelIntegrity\Analysis\FactoryModelAnalyzer;
+use ModelIntegrity\Analysis\FactoryModelAnalyzer;
 
 final class CheckCommand extends Command
 {
     protected $signature = 'model-integrity:check';
 
-    protected $description = 'Check explicit factory model references';
+    protected $description = 'Check factory model references and conventional mappings';
 
     public function handle(FactoryModelAnalyzer $analyzer): int
     {

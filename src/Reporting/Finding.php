@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace RavindraDot\ModelIntegrity\Reporting;
+namespace ModelIntegrity\Reporting;
 
 final readonly class Finding
 {

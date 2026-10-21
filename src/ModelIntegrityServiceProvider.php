@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace RavindraDot\ModelIntegrity;
+namespace ModelIntegrity;
 
 use Illuminate\Support\ServiceProvider;
-use RavindraDot\ModelIntegrity\Console\CheckCommand;
+use ModelIntegrity\Console\CheckCommand;
 
 final class ModelIntegrityServiceProvider extends ServiceProvider
 {

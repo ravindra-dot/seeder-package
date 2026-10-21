@@ -23,7 +23,8 @@ slice; `README.md` is the source of truth for commands that work today.
 | AST scanning of classes under `app/` and direct factory subclasses under `database/factories/` | Implemented |
 | Explicit `App\...` factory `$model` reference check (`factory.model_not_found`) | Implemented and tested |
 | Parse-error warning (`analysis.parse_error`) and basic console exit codes | Implemented and tested |
-| Convention-based factory mapping, other factory rules, seeders, relationships, JSON, and configuration | Planned |
+| Default model-to-factory candidate resolution and suspicious explicit target warning | Implemented locally and tested |
+| Other factory rules, seeders, relationships, JSON, and configuration | Planned |
 | Installation in a separate Laravel app and PHP/Laravel compatibility matrix | Not yet verified |
 
 The current command uses Artisan, which boots the host Laravel
@@ -656,9 +657,9 @@ run against a fixture project without modifying its database.
 
 ### Phase 1 --- Factory discovery and mapping
 
-**Status:** In progress. Class discovery and the explicit missing-model
-rule are implemented; convention-based resolution and the remaining
-factory rules are planned.
+**Status:** In progress. Class discovery, the explicit missing-model
+rule, and a conservative convention-based mapping warning are implemented;
+the remaining factory rules are planned.
 
 **Implementation order** 1. Define a `Finding` value object and a simple
 `Report`. 2. Implement path scanning with exclusions. 3. Parse PHP files
@@ -871,8 +872,8 @@ in small, reviewable steps.
 
 1.  Verify installation and command registration in a separate Laravel
     12 application before claiming consumer compatibility.
-2.  Add convention-based model-to-factory candidate resolution with
-    tests for valid mappings, plural names, and explicit overrides.
+2.  Extend convention-based mapping beyond direct model subclasses and
+    direct `HasFactory` use only when false-positive safeguards are tested.
 3.  Add further factory rules only after their false-positive behavior
     is defined and tested.
 4.  Move to seeder analysis after factory checks are reliable, then to

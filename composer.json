@@ -1,5 +1,5 @@
 {
-    "name": "ravindra-dot/laravel-model-integrity",
+    "name": "model-integrity/laravel-model-integrity",
     "description": "Static diagnostics for Laravel model and factory mappings",
     "type": "library",
     "license": "MIT",
@@ -17,18 +17,18 @@
     },
     "autoload": {
         "psr-4": {
-            "RavindraDot\\ModelIntegrity\\": "src/"
+            "ModelIntegrity\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "RavindraDot\\ModelIntegrity\\Tests\\": "tests/"
+            "ModelIntegrity\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "RavindraDot\\ModelIntegrity\\ModelIntegrityServiceProvider"
+                "ModelIntegrity\\ModelIntegrityServiceProvider"
             ]
         }
     },

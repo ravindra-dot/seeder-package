@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace RavindraDot\ModelIntegrity\Tests\Unit;
+namespace ModelIntegrity\Tests\Unit;
 
+use ModelIntegrity\Analysis\FactoryModelAnalyzer;
 use PHPUnit\Framework\TestCase;
-use RavindraDot\ModelIntegrity\Analysis\FactoryModelAnalyzer;
 
 final class FactoryModelAnalyzerTest extends TestCase
 {
@@ -51,5 +51,20 @@ final class FactoryModelAnalyzerTest extends TestCase
         self::assertSame('database/factories/CustomerFactory.php', $finding->file);
         self::assertSame(10, $finding->line);
         self::assertStringContainsString('App\\Billing\\Customer', $finding->message);
+    }
+
+    public function test_conventional_factory_target_mismatch_is_a_warning_without_flagging_absent_or_overridden_factories(): void
+    {
+        $report = (new FactoryModelAnalyzer)->analyze(__DIR__.'/../Fixtures/conventional-mapping');
+
+        self::assertCount(1, $report->findings());
+        $finding = $report->findings()[0];
+        self::assertSame('factory.model_mapping_suspicious', $finding->rule);
+        self::assertSame('warning', $finding->severity);
+        self::assertSame('database/factories/StudentFactory.php', $finding->file);
+        self::assertSame(10, $finding->line);
+        self::assertStringContainsString('App\\Models\\Student', $finding->message);
+        self::assertStringContainsString('App\\Models\\Teacher', $finding->message);
+        self::assertFalse($report->hasErrors());
     }
 }
