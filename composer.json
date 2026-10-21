@@ -1,0 +1,42 @@
+{
+    "name": "ravindra-dot/laravel-model-integrity",
+    "description": "Static diagnostics for Laravel model and factory mappings",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "illuminate/console": "^12.0",
+        "illuminate/support": "^12.0",
+        "nikic/php-parser": "^5.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.0",
+        "orchestra/testbench": "^10.0",
+        "phpstan/phpstan": "^2.0",
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "RavindraDot\\ModelIntegrity\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "RavindraDot\\ModelIntegrity\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "RavindraDot\\ModelIntegrity\\ModelIntegrityServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "format:test": "pint --test",
+        "analyse": "phpstan analyse --no-progress"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

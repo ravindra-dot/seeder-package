@@ -206,19 +206,17 @@ If the scope document conflicts with the current user request, follow
 the latest explicit user instruction and mention any important impact on
 the roadmap.
 
-## 13. First Task
+## 13. Current Milestone
 
-When asked to initialize the repository:
+The package foundation, Artisan command, PHPUnit setup, AST-based class
+discovery, and first rule (`factory.model_not_found`) are implemented.
+The current behavior and limitations are documented in `README.md`.
+This is an initial local implementation; installation in a separate
+Laravel application and the wider compatibility matrix remain unverified.
 
-1.  Read `PROJECT_SCOPE.md` and this file.
-2.  Inspect the repository state.
-3.  Confirm the proposed package name, namespace, PHP/Laravel
-    compatibility target, and test framework from the existing
-    repository or ask if they are genuinely blocking.
-4.  Create only the package foundation: `composer.json`, service
-    provider, minimal Artisan command, test configuration, and one
-    command-registration test.
-5.  Do not implement all analyzer rules yet.
-6.  Run the available test and quality checks.
-7.  Report the result and propose the next smallest task: model/factory
-    discovery.
+For the next implementation task, extend factory mapping resolution in
+one tested slice. Start by reading the current analyzer and fixtures,
+then handle Laravel's conventional model-to-factory candidate without
+flagging intentional factory absence as an error. Preserve the existing
+explicit-reference check and its false-positive safeguards. Do not
+start seeder or relationship rules until factory analysis is reliable.

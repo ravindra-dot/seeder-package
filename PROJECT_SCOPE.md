@@ -11,6 +11,25 @@ before they become runtime errors.
 > The name is provisional. The first release should prioritize reliable
 > diagnostics over automatic code modification.
 
+### Implementation status (October 2026)
+
+This document is the **roadmap for the full toolkit**, not a list of
+features already available. The current code implements a smaller first
+slice; `README.md` is the source of truth for commands that work today.
+
+| Area | Status |
+| --- | --- |
+| Composer package, Laravel service provider, and `model-integrity:check` command | Implemented locally |
+| AST scanning of classes under `app/` and direct factory subclasses under `database/factories/` | Implemented |
+| Explicit `App\...` factory `$model` reference check (`factory.model_not_found`) | Implemented and tested |
+| Parse-error warning (`analysis.parse_error`) and basic console exit codes | Implemented and tested |
+| Convention-based factory mapping, other factory rules, seeders, relationships, JSON, and configuration | Planned |
+| Installation in a separate Laravel app and PHP/Laravel compatibility matrix | Not yet verified |
+
+The current command uses Artisan, which boots the host Laravel
+application and its service providers. The analyzer itself parses source
+without including application files or running migrations or seeders.
+
 ------------------------------------------------------------------------
 
 ## 1. Project Overview
@@ -21,9 +40,9 @@ connections can break when a project uses plural or irregular model
 names, custom namespaces, incorrect imports, misspelled relationship
 methods, or factories that target the wrong model.
 
-The toolkit scans a Laravel application and produces actionable findings
-with the file, line where available, severity, explanation, and
-suggested fix.
+The planned toolkit scans a Laravel application and produces actionable
+findings with the file, line where available, severity, explanation,
+and suggested fix.
 
 ### Example problems
 
@@ -53,7 +72,7 @@ safely.
 
 ## 2. Goals and Non-Goals
 
-### Goals for the first release
+### Goals for the planned full version 1
 
 1.  Discover Eloquent models, factories, and seeders.
 2.  Resolve class names and namespaces as accurately as practical.
@@ -94,7 +113,7 @@ safely.
 -   Developers learning Eloquent conventions.
 -   Maintainers who want a repeatable pre-commit or CI check.
 
-### Core use cases
+### Planned core use cases
 
 **Use case A --- Find naming mismatches**
 
@@ -621,6 +640,10 @@ placeholder file before the first test passes.
 
 ### Phase 0 --- Package foundation
 
+**Status:** The core local foundation is implemented. A CI workflow,
+installation in a separate consumer application, and a compatibility
+matrix remain to be completed.
+
 **Deliverables** - Composer package metadata and namespace. - Supported
 PHP/Laravel version policy. - Service provider registration and command
 registration. - PHPUnit/Pest setup, Pint, and PHPStan configuration. -
@@ -632,6 +655,10 @@ application. - `php artisan list` shows the command. - The command can
 run against a fixture project without modifying its database.
 
 ### Phase 1 --- Factory discovery and mapping
+
+**Status:** In progress. Class discovery and the explicit missing-model
+rule are implemented; convention-based resolution and the remaining
+factory rules are planned.
 
 **Implementation order** 1. Define a `Finding` value object and a simple
 `Report`. 2. Implement path scanning with exclusions. 3. Parse PHP files
@@ -818,12 +845,12 @@ Version 1 is ready when:
 
 -   [ ] A compatible Laravel app can install the package through
     Composer.
--   [ ] The Artisan command is registered and documented.
+-   [x] The Artisan command is registered and documented.
 -   [ ] Model, factory, and seeder discovery works for configured paths.
 -   [ ] Factory checks are implemented and tested.
 -   [ ] Seeder checks are implemented and tested.
 -   [ ] Core relationship checks are implemented and tested.
--   [ ] Console reports contain stable rule IDs, severity, location, and
+-   [x] Console reports contain stable rule IDs, severity, location, and
     remediation.
 -   [ ] JSON output is valid and documented.
 -   [ ] Exit codes work for CI.
@@ -835,25 +862,21 @@ Version 1 is ready when:
 
 ------------------------------------------------------------------------
 
-## 17. First Coding Session: Exact Starting Tasks
+## 17. Next Implementation Slice
 
-Do these tasks in order; avoid generating the entire package at once.
+The first local slice is complete: package metadata, the service
+provider and command, `Finding` and `Report`, AST parsing, source
+fixtures, and `factory.model_not_found` with tests. Keep extending it
+in small, reviewable steps.
 
-1.  Create the package repository and `composer.json`.
-2.  Choose a provisional vendor/package name and PSR-4 namespace.
-3.  Add the service provider and a minimal Artisan command.
-4.  Add one test proving the command is registered and runs.
-5.  Define `Finding` and `Report`.
-6.  Add the AST parser dependency.
-7.  Create two fixture cases: one valid model/factory pair and one
-    mismatch.
-8.  Implement model and factory discovery.
-9.  Implement one rule: `factory.model_not_found`.
-10. Verify the rule through an automated test and console report.
-11. Only then add the remaining factory rules.
-12. After factory checks are reliable, move to seeders.
-13. Add relationship checks after seeder analysis is working.
+1.  Verify installation and command registration in a separate Laravel
+    12 application before claiming consumer compatibility.
+2.  Add convention-based model-to-factory candidate resolution with
+    tests for valid mappings, plural names, and explicit overrides.
+3.  Add further factory rules only after their false-positive behavior
+    is defined and tested.
+4.  Move to seeder analysis after factory checks are reliable, then to
+    relationship analysis.
 
-**First milestone:** a Composer-installable package that runs one safe
-static check and reports one well-tested factory/model mismatch. This is
-the smallest useful end-to-end version of the project.
+The first milestone remains an initial local implementation until the
+consumer installation check is complete.
