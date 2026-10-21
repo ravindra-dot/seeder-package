@@ -1,6 +1,6 @@
 # Laravel Model Integrity Toolkit
 
-A small Laravel developer package for checking factory model references. It scans PHP source with an AST parser and reports missing explicit model targets and suspicious conventional mappings.
+Laravel Model Integrity Toolkit checks Eloquent model and factory mappings using static PHP analysis. It identifies missing explicit model references and suspicious conventional mappings, then reports where to look and what to check.
 
 ## Why use it, and who is it for?
 
