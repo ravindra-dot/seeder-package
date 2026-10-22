@@ -67,4 +67,31 @@ final class FactoryModelAnalyzerTest extends TestCase
         self::assertStringContainsString('App\\Models\\Teacher', $finding->message);
         self::assertFalse($report->hasErrors());
     }
+
+    public function test_inherited_has_factory_is_analyzed_and_inherited_overrides_are_respected(): void
+    {
+        $report = (new FactoryModelAnalyzer)->analyze(__DIR__.'/../Fixtures/inherited-mapping');
+        $findings = $report->findings();
+
+        self::assertCount(2, $findings);
+
+        $files = array_map(static fn ($finding): string => $finding->file, $findings);
+        sort($files);
+
+        self::assertSame([
+            'database/factories/AttributeChildFactory.php',
+            'database/factories/AuthorFactory.php',
+        ], $files);
+
+        foreach ($findings as $finding) {
+            self::assertSame('factory.model_mapping_suspicious', $finding->rule);
+            self::assertSame('warning', $finding->severity);
+            self::assertSame(10, $finding->line);
+        }
+
+        $messages = implode("\n", array_map(static fn ($finding): string => $finding->message, $findings));
+        self::assertStringContainsString('App\\Models\\Author', $messages);
+        self::assertStringContainsString('App\\Models\\AttributeChild', $messages);
+        self::assertFalse($report->hasErrors());
+    }
 }

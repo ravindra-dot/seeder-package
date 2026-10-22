@@ -13,8 +13,8 @@ It is most useful for Laravel developers and teams that maintain many models and
 - Resolves namespace imports and fully qualified class names.
 - Scans `app/` for class declarations and `database/factories/` for direct `Factory` subclasses.
 - Reports `factory.model_not_found` as an error with a source location and suggestion.
-- Resolves Laravel's default `Database\Factories\...Factory` candidate for direct `App\...` model subclasses using `HasFactory`, preserving plural and irregular class names.
-- Reports `factory.model_mapping_suspicious` as a warning when an existing conventional factory explicitly targets a different discovered model. `UseFactory`, a model `$factory` property, or a `newFactory()` method suppresses this convention check.
+- Resolves Laravel's default `Database\Factories\...Factory` candidate for `App\...` model subclasses that use `HasFactory` directly or inherit it from an application base class, preserving plural and irregular class names.
+- Reports `factory.model_mapping_suspicious` as a warning when an existing conventional factory explicitly targets a different discovered model. `UseFactory` on the model itself, or a `$factory` property or `newFactory()` method on the model or an application ancestor, suppresses this convention check.
 - Reports PHP parser failures as `analysis.parse_error` warnings.
 - Exits with code `1` when an error is found; otherwise exits with code `0`.
 
@@ -49,11 +49,11 @@ When `App\Models\Student` uses `HasFactory`, but the existing `Database\Factorie
 
 ## Known limits and planned work
 
-Only explicit `App\...` model references are checked for existence. Convention checking currently covers direct Eloquent model subclasses with a direct `HasFactory` use and an existing default factory class; it does not report absent factories. Inherited models or factories, custom model roots outside `app/`, custom factory name resolvers, dynamic targets, and explicit override targets are not analyzed. Seeders, relationships, JSON output, configuration, and severity thresholds are also planned. An empty report therefore does not prove that every mapping works.
+Only explicit `App\...` model references are checked for existence. Convention checking covers Eloquent models that reach `Illuminate\Database\Eloquent\Model` through resolvable application classes and that use `HasFactory` directly or inherit it. Chains that leave `app/` before reaching `Model` are left unresolved, and a `HasFactory` supplied by a custom trait rather than a class is not detected. Absent factories are still not reported. Inherited factory classes, custom model roots outside `app/`, custom factory name resolvers, dynamic targets, and explicit override targets are not analyzed. Seeders, relationships, JSON output, configuration, and severity thresholds are also planned. An empty report therefore does not prove that every mapping works.
 
 ## Suggested next implementation step
 
-Verify path-repository installation and command registration in a separate Laravel 12 application. Then extend factory discovery to inherited models and inherited `HasFactory` use in one tested slice, while preserving the current safeguards for explicit overrides, dynamic references, and intentionally absent factories. Add fixtures for both valid and mismatched mappings before introducing more rules. Seeder and relationship checks should follow only after factory analysis is reliable.
+Verify path-repository installation and command registration in a separate Laravel 12 application. Then define and test the next factory rule only after its false-positive behavior is specified; remaining candidates include a low-severity convention warning and custom factory name resolution. Preserve the current safeguards for explicit overrides, dynamic references, and intentionally absent factories. Seeder and relationship checks should follow only after factory analysis is reliable.
 
 ## Development
 

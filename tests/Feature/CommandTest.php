@@ -50,4 +50,15 @@ final class CommandTest extends TestCase
             ->expectsOutput('Result: 1 finding(s)')
             ->assertExitCode(0);
     }
+
+    public function test_command_reports_inherited_model_mapping_warnings_without_failing(): void
+    {
+        $this->app->setBasePath(__DIR__.'/../Fixtures/inherited-mapping');
+
+        $this->artisan('model-integrity:check')
+            ->expectsOutputToContain('App\\Models\\Author')
+            ->expectsOutputToContain('App\\Models\\AttributeChild')
+            ->expectsOutput('Result: 2 finding(s)')
+            ->assertExitCode(0);
+    }
 }

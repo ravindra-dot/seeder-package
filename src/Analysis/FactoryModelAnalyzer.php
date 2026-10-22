@@ -23,20 +23,15 @@ final class FactoryModelAnalyzer
     {
         $root = rtrim(str_replace('\\', '/', $projectRoot), '/');
         $report = new Report;
-        $applicationClasses = [];
+        /** @var array<string, array{class: Node\Stmt\Class_, file: string}> $classes */
+        $classes = [];
         $factories = [];
-        $modelsWithFactories = [];
         $applicationIndexComplete = true;
 
         foreach ($this->phpFiles($root.'/app') as $file) {
             $findingCount = count($report->findings());
             foreach ($this->classesIn($file, $root, $report) as $class) {
-                $applicationClasses[strtolower($class->namespacedName->toString())] = true;
-
-                if ($this->extends($class, 'Illuminate\\Database\\Eloquent\\Model')
-                    && $this->usesTrait($class, 'Illuminate\\Database\\Eloquent\\Factories\\HasFactory')) {
-                    $modelsWithFactories[] = $class;
-                }
+                $classes[strtolower($class->namespacedName->toString())] = ['class' => $class, 'file' => $file];
             }
             if (count($report->findings()) !== $findingCount) {
                 $applicationIndexComplete = false;
@@ -63,7 +58,7 @@ final class FactoryModelAnalyzer
             // before they can be reported as missing application classes.
             if (! $applicationIndexComplete
                 || ! str_starts_with(strtolower($target), 'app\\')
-                || isset($applicationClasses[strtolower($target)])) {
+                || isset($classes[strtolower($target)])) {
                 continue;
             }
 
@@ -79,8 +74,12 @@ final class FactoryModelAnalyzer
 
         $resolver = new ConventionalFactoryResolver;
 
-        foreach ($modelsWithFactories as $model) {
-            if ($this->hasFactoryOverride($model)) {
+        foreach ($classes as $modelKey => $modelEntry) {
+            $model = $modelEntry['class'];
+
+            if (! $this->isModel($modelKey, $classes)
+                || ! $this->inheritsHasFactory($modelKey, $classes)
+                || $this->hasFactoryOverride($modelKey, $classes)) {
                 continue;
             }
 
@@ -97,7 +96,7 @@ final class FactoryModelAnalyzer
             }
 
             $target = $modelReference->class->toString();
-            if (! isset($applicationClasses[strtolower($target)])
+            if (! isset($classes[strtolower($target)])
                 || strcasecmp($target, $modelName) === 0) {
                 continue;
             }
@@ -191,7 +190,114 @@ final class FactoryModelAnalyzer
         return false;
     }
 
-    private function hasFactoryOverride(Node\Stmt\Class_ $class): bool
+    /**
+     * Determine whether the class is an application model by following its
+     * inheritance chain. Chains that leave the application index are left
+     * unresolved so unknown vendor parents cannot cause false findings.
+     *
+     * @param  array<string, array{class: Node\Stmt\Class_, file: string}>  $classes
+     */
+    private function isModel(string $key, array $classes): bool
+    {
+        $seen = [];
+
+        while (! isset($seen[$key])) {
+            $seen[$key] = true;
+
+            $class = $classes[$key]['class'] ?? null;
+            if ($class === null) {
+                return false;
+            }
+
+            $parent = $this->parentName($class);
+            if ($parent === null) {
+                return false;
+            }
+
+            if (strcasecmp($parent, 'Illuminate\\Database\\Eloquent\\Model') === 0) {
+                return true;
+            }
+
+            $key = strtolower($parent);
+        }
+
+        return false;
+    }
+
+    /**
+     * HasFactory is inherited from an application base class, so the trait
+     * does not need to be used directly by the model.
+     *
+     * @param  array<string, array{class: Node\Stmt\Class_, file: string}>  $classes
+     */
+    private function inheritsHasFactory(string $key, array $classes): bool
+    {
+        $seen = [];
+
+        while (! isset($seen[$key])) {
+            $seen[$key] = true;
+
+            $class = $classes[$key]['class'] ?? null;
+            if ($class === null) {
+                return false;
+            }
+
+            if ($this->usesTrait($class, 'Illuminate\\Database\\Eloquent\\Factories\\HasFactory')) {
+                return true;
+            }
+
+            $parent = $this->parentName($class);
+            if ($parent === null) {
+                return false;
+            }
+
+            $key = strtolower($parent);
+        }
+
+        return false;
+    }
+
+    /**
+     * A UseFactory attribute applies only to the class that declares it, while
+     * a $factory property or newFactory() method is inherited by descendants.
+     *
+     * @param  array<string, array{class: Node\Stmt\Class_, file: string}>  $classes
+     */
+    private function hasFactoryOverride(string $key, array $classes): bool
+    {
+        $seen = [];
+        $isDeclaringClass = true;
+
+        while (! isset($seen[$key])) {
+            $seen[$key] = true;
+
+            $class = $classes[$key]['class'] ?? null;
+            if ($class === null) {
+                return false;
+            }
+
+            if ($isDeclaringClass && $this->hasUseFactoryAttribute($class)) {
+                return true;
+            }
+
+            if ($this->declaresFactoryOverride($class)) {
+                return true;
+            }
+
+            $isDeclaringClass = false;
+
+            $parent = $this->parentName($class);
+            if ($parent === null) {
+                return false;
+            }
+
+            $key = strtolower($parent);
+        }
+
+        return false;
+    }
+
+    private function hasUseFactoryAttribute(Node\Stmt\Class_ $class): bool
     {
         foreach ($class->attrGroups as $group) {
             foreach ($group->attrs as $attribute) {
@@ -201,6 +307,11 @@ final class FactoryModelAnalyzer
             }
         }
 
+        return false;
+    }
+
+    private function declaresFactoryOverride(Node\Stmt\Class_ $class): bool
+    {
         foreach ($class->getMethods() as $method) {
             if (strcasecmp($method->name->toString(), 'newFactory') === 0) {
                 return true;
@@ -216,6 +327,11 @@ final class FactoryModelAnalyzer
         }
 
         return false;
+    }
+
+    private function parentName(Node\Stmt\Class_ $class): ?string
+    {
+        return $class->extends instanceof Node\Name ? $class->extends->toString() : null;
     }
 
     private function explicitModelReference(Node\Stmt\Class_ $factory): ?Node\Expr\ClassConstFetch

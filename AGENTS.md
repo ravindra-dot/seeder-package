@@ -209,14 +209,15 @@ the roadmap.
 ## 13. Current Milestone
 
 The package foundation, Artisan command, PHPUnit setup, AST-based class
-discovery, and first rule (`factory.model_not_found`) are implemented.
-The current behavior and limitations are documented in `README.md`.
-This is an initial local implementation; installation in a separate
-Laravel application and the wider compatibility matrix remain unverified.
+discovery, `factory.model_not_found`, `factory.model_mapping_suspicious`,
+and parse-error reporting are implemented. Convention mapping resolves
+direct and inherited `HasFactory` use and respects `UseFactory` on the
+model plus inherited `$factory` and `newFactory()` overrides.
 
-For the next implementation task, extend factory mapping resolution in
-one tested slice. Start by reading the current analyzer and fixtures,
-then handle Laravel's conventional model-to-factory candidate without
-flagging intentional factory absence as an error. Preserve the existing
-explicit-reference check and its false-positive safeguards. Do not
-start seeder or relationship rules until factory analysis is reliable.
+For the next implementation task, verify installation in a separate
+Laravel 12 application, then add one remaining factory rule in a tested
+slice. Do not flag an intentionally absent factory as an error. Keep
+custom-trait `HasFactory`, vendor parent chains, custom factory name
+resolvers, and dynamic targets unresolved until their safeguards are
+tested. Do not start seeder or relationship rules until factory analysis
+is reliable.

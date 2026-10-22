@@ -23,7 +23,7 @@ slice; `README.md` is the source of truth for commands that work today.
 | AST scanning of classes under `app/` and direct factory subclasses under `database/factories/` | Implemented |
 | Explicit `App\...` factory `$model` reference check (`factory.model_not_found`) | Implemented and tested |
 | Parse-error warning (`analysis.parse_error`) and basic console exit codes | Implemented and tested |
-| Default model-to-factory candidate resolution and suspicious explicit target warning | Implemented locally and tested |
+| Default model-to-factory candidate resolution and suspicious explicit target warning, including inherited `HasFactory` and inherited overrides | Implemented locally and tested |
 | Other factory rules, seeders, relationships, JSON, and configuration | Planned |
 | Installation in a separate Laravel app and PHP/Laravel compatibility matrix | Not yet verified |
 
@@ -658,8 +658,10 @@ run against a fixture project without modifying its database.
 ### Phase 1 --- Factory discovery and mapping
 
 **Status:** In progress. Class discovery, the explicit missing-model
-rule, and a conservative convention-based mapping warning are implemented;
-the remaining factory rules are planned.
+rule, and a conservative convention-based mapping warning are
+implemented. Convention mapping follows application inheritance chains
+and inherited `$factory`/`newFactory()` overrides; the remaining factory
+rules are planned.
 
 **Implementation order** 1. Define a `Finding` value object and a simple
 `Report`. 2. Implement path scanning with exclusions. 3. Parse PHP files
@@ -872,8 +874,10 @@ in small, reviewable steps.
 
 1.  Verify installation and command registration in a separate Laravel
     12 application before claiming consumer compatibility.
-2.  Extend convention-based mapping beyond direct model subclasses and
-    direct `HasFactory` use only when false-positive safeguards are tested.
+2.  Convention mapping now follows application inheritance chains and
+    inherited `$factory`/`newFactory()` overrides. Keep `HasFactory`
+    supplied by custom traits, vendor parent chains, and custom factory
+    name resolvers unresolved until their safeguards are tested.
 3.  Add further factory rules only after their false-positive behavior
     is defined and tested.
 4.  Move to seeder analysis after factory checks are reliable, then to
