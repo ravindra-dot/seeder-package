@@ -1,4 +1,5 @@
 # Laravel Model Integrity Toolkit
+[![XERJ Corpus Hub contributor](https://hub.xerj.org/contributors/ravindra-dot/badge.svg)](https://hub.xerj.org/contributors/ravindra-dot)
 
 Laravel Model Integrity Toolkit checks Eloquent model and factory mappings using static PHP analysis. It identifies missing explicit model references and suspicious conventional mappings, then reports where to look and what to check.
 
